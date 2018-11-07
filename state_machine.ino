@@ -134,3 +134,19 @@ static void psm_idle_pump(const unsigned long dt, void*)
     psm_update_state(1);
   }
 }
+
+void force_stop_pump()
+{
+  Serial.println("Forcing pump to stop...");
+}
+
+void force_start_pump()
+{
+  Serial.println("Forcing pump to start...");
+  psm_update_state(1);
+}
+
+void resume_pump()
+{
+  Serial.println("Resuming normal pump operation...");
+}

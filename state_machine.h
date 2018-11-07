@@ -8,4 +8,13 @@ extern void init_state_machine();
 // @param Time in miliseconds since last execution
 extern void run_state_machine(const unsigned long dt);
 
+// Forces the pump to stop running
+extern void force_stop_pump();
+
+// Forces the pump to run through one cycle
+extern void force_start_pump();
+
+// Resumes normal pump operation
+extern void resume_pump();
+
 #endif

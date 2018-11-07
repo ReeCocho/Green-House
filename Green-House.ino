@@ -3,6 +3,7 @@
 #include "constants.h"
 #include "state_machine.h"
 #include "moisture_sensor.h"
+#include "commands.h"
 
 /** GLOBAL VARIABLES **/
 
@@ -76,6 +77,9 @@ void loop()
   last_dt_timer = cur_dt_timer;
   cur_dt_timer = millis();
   const auto dt = cur_dt_timer - last_dt_timer;
+
+  // Process user input
+  process_input();
 
   // Update EEPROM
   update_eeprom(dt);
