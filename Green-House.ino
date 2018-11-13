@@ -1,98 +1,61 @@
-/** INCLUDES */
-#include <EEPROM.h>
-#include "constants.h"
+/** Includes. */
 #include "state_machine.h"
-#include "moisture_sensor.h"
 #include "commands.h"
+#include "pump.h"
+#include "pins.h"
 
-/** GLOBAL VARIABLES **/
+/** Delta time variables. */
+static unsigned long last_time;
+static unsigned long current_time;
 
-// Timer used to calculate delta time
-static unsigned long last_dt_timer = 0;
-static unsigned long cur_dt_timer = 0;
+/** Pump state machine. */
+static StateMachine psm = {};
 
-// Update EEPROM with sensor values
-void update_eeprom(const unsigned long dt)
-{
-  // Timer used to update EEPROM every hour
-  static unsigned long eeprom_timer = 0;
-
-  // Add delta time
-  eeprom_timer += dt;
-
-  // If an hour has passed...
-  if(eeprom_timer >= 3600000)
-  {
-    // Read EEPROM counter
-    char count = EEPROM.read(0);
-
-    // Stop if the count is at a maximum
-    if(count == 255)
-    {
-      eeprom_timer = 0;
-      return;
-    }
-    
-    // Update counter
-    EEPROM.write(0, count + 1);
-
-    // Convert the median value into a short and separate the lower and upper byte
-    const uint16_t val = static_cast<uint16_t>(moisture_sensor_value);
-    const uint8_t* bval = reinterpret_cast<const uint8_t*>(&val);
-
-    // Write sensor value
-    for(int i = 0; i < sizeof(uint16_t); ++i)
-      EEPROM.write(1 + i + (count * sizeof(uint16_t)), bval[i]);
-
-    // Reset timer
-    eeprom_timer = 0;
-  }
-}
+/** Command manager. */
+static CommandManager commands = {};
 
 void setup() 
 {
-  // Initialize serial output
+  // Initialize serial monitoring
   Serial.begin(9600);
   
-  // Setup digital pins
-  pinMode(M_SENSOR_LED_PIN, OUTPUT);
+  // Initialize pins
   pinMode(PUMP_PIN, OUTPUT);
   pinMode(EB_FLOAT_SWITCH_PIN, INPUT);
   delay(500);
+  
+  // Initialize state machine
+  StateMachine::Node node = {};
+  
+  node.func = &psm_wait_until_dry;
+  psm.add_node(node);
 
-  // Initialize the state machine
-  init_state_machine();
+  node.func = &psm_run_pump;
+  psm.add_node(node);
 
-  // Initialize the moisture sensor
-  init_moisture_sensor();
+  node.func = &psm_idle_pump;
+  psm.add_node(node);
 
-  // Initialize delta time timer
-  last_dt_timer = millis();
-  cur_dt_timer = last_dt_timer;
+  // Initialize timer
+  last_time = millis();
+  current_time = last_time;
 }
 
 void loop() 
 {
   // Update delta time
-  last_dt_timer = cur_dt_timer;
-  cur_dt_timer = millis();
-  const auto dt = cur_dt_timer - last_dt_timer;
+  last_time = current_time;
+  current_time = millis();
+  const auto dt = current_time - last_time;
 
-  // Process user input
-  process_input();
+  Serial.println(digitalRead(EB_FLOAT_SWITCH_PIN));
 
-  // Update EEPROM
-  update_eeprom(dt);
+  // Poll for commands
+  commands.poll();
 
-  // Update sensor median
-  update_sensor_median(dt);
+  // Run the state machine
+  psm.execute(dt);
 
-  // Update moisture sensor LED
-  update_moisture_led(dt);
-
-  // Run state machine
-  run_state_machine(dt);
-  
-  // Wait 1 milliseconds so the sensors have time to update
+  // Wait 1 millisecond so the sensors have time to update
   delay(1);
 }

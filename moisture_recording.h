@@ -1,0 +1,6 @@
+#ifndef GH_MOISTURE_RECORDING_H
+#define GH_MOISTURE_RECORDING_H
+
+
+
+#endif

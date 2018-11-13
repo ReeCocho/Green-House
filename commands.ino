@@ -1,36 +1,11 @@
-/** INCLUDES **/
-#include <EEPROM.h>
-#include "state_machine.h"
+/** Includes. */
+#include <stdlib.h>
+#include "commands.h"
 
-// A command that can be executed
-struct Command
-{
-  // Function to execute
-  void(*func)();
-
-  // Name of the function
-  const char* str;
-};
-
-// List of commands
-static Command commands[] =
-{
-  {
-    &force_stop_pump,
-    "force_stop_pump"
-  },
-  {
-    &force_start_pump,
-    "force_start_pump"
-  },
-  {
-    &resume_pump,
-    "resume_pump"
-  }
-};
-
-// Read a string sent by the user
-// @param Forces the program to wait for input
+/**
+ * Read a string sent by the user over serial.
+ * @param Forces the program to wait for input.
+ */
 static char* read_user_input(const bool wait)
 {
   char* str = NULL;
@@ -76,24 +51,20 @@ static char* read_user_input(const bool wait)
   return str;
 }
 
-// Process the users input as a command
-// @param Command string to process
-static void process_command(const char* cmd)
-{
-  for(size_t i = 0; i < sizeof(commands)/sizeof(Command); ++i)
-    if(strcmp(cmd, commands[i].str) == 0)
-    {
-      commands[i].func();
-      return;
-    }
 
-  // Unkown command
-  Serial.print("Unkown command \"");
-  Serial.print(cmd);
-  Serial.print("\"\n");
+
+CommandManager::CommandManager() : m_length(0)
+{
+  // Allocate 1 byte so we can use realloc
+  m_commands = (Command*)malloc(1);
 }
 
-void process_input()
+CommandManager::~CommandManager()
+{
+  free(m_commands);
+}
+
+void CommandManager::poll()
 {
   // Read a string from the user
   char* str = read_user_input(false);
@@ -101,7 +72,26 @@ void process_input()
   // If it isn't NULL process it as a command and free it
   if(str != NULL)
   {
-    process_command(str);
+    // Loop over every command and check if the user input that one
+    for(size_t i = 0; i < m_length; ++i)
+      if(strcmp(str, m_commands[i].str) == 0)
+      {
+        m_commands[i].func();
+        free(str);
+        return;
+      }
+
+    // Unkown command
+    Serial.print("Unkown command \"");
+    Serial.print(str);
+    Serial.print("\"\n");    
+
     free(str);
   }
+}
+
+void CommandManager::add_command(const Command& c)
+{
+  m_commands = (Command*)realloc(m_commands, sizeof(Command) * ++m_length);
+  m_commands[m_length - 1] = c;
 }

@@ -1,16 +1,35 @@
 #ifndef GH_MOISTURE_SENSOR_H
 #define GH_MOISTURE_SENSOR_H
 
-// Current value from the moisture sensor
-extern int moisture_sensor_value;
+/** Minimum value from the moisture sensor. (Dry) */
+#define MS_DRY_VALUE 0
 
-// Initialize the moisture sensor
-extern void init_moisture_sensor();
+/** Maximum value from the moisture sensor. (Wet) */
+#define MS_WET_VALUE 560
 
-// Update sensor median
-extern void update_sensor_median(const unsigned long dt);
+/**
+ * Moisture sensor utility class.
+ */
+class MoistureSensor
+{
+public:
 
-// Update the moisture sensor led
-extern void update_moisture_led(const unsigned long dt);
+  /**
+   * Constructor.
+   * @param Pin the sensor is connected too.
+   */
+  MoistureSensor(const int pin);
+
+  /**
+   * Read a value from the moisture sensor.
+   * @return Value ranging from 0 to 1, where 0 is the minimum and 1 is the maximum.
+   */
+  float read_value() const;
+
+private:
+
+  /** Moisture sensor pin. */
+  const int m_pin;
+};
 
 #endif
