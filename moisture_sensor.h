@@ -15,6 +15,11 @@ class MoistureSensor
 public:
 
   /**
+   * Default constructor.
+   */
+  MoistureSensor();
+
+  /**
    * Constructor.
    * @param Pin the sensor is connected too.
    */
@@ -22,9 +27,9 @@ public:
 
   /**
    * Read a value from the moisture sensor.
-   * @return Value ranging from 0 to 1, where 0 is the minimum and 1 is the maximum.
+   * @return Value ranging from 0 to 1024, where 0 is the minimum and 1024 is the maximum.
    */
-  float read_value() const;
+  uint16_t read_value() const;
 
 private:
 

@@ -1,8 +1,6 @@
 #ifndef GH_COMMANDS_H
 #define GH_COMMANDS_H
 
-/** Includes. */
-
 /**
  * Command manager.
  */
