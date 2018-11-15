@@ -1,6 +1,4 @@
-/** Includes. */
-#include "state_machine.h"
-#include "moisture_sensor.h"
+/* Includes. */
 #include "moisture_recording.h"
 #include "commands.h"
 #include "pump.h"

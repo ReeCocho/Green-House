@@ -2,14 +2,16 @@
 #define GH_COMMANDS_H
 
 /**
- * Command manager.
+ * A utility class which reads input from the serial monitor and interprets
+ * the input as commands. Commands are registered with the class.
  */
 class CommandManager
 {
 public:
 
   /**
-   * A command that can be executed.
+   * A named function that can be executed by typing its name into the serial
+   * monitor.
    */
   struct Command
   {
@@ -31,13 +33,14 @@ public:
   ~CommandManager();
 
   /**
-   * Poll for commands.
+   * Checks to see if any command have been input. If they have, it 
+   * executes them.
    */
   void poll();
 
   /**
-   * Add a command.
-   * @param New command.
+   * Add a new command.
+   * @param c The new command.
    */
   void add_command(const Command& c);
 

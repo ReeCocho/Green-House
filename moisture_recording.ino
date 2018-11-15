@@ -16,7 +16,7 @@ MoistureRecording::MoistureRecording(MoistureSensor& sensor) :
 
 void MoistureRecording::update_system(const unsigned long dt)
 {
-  // Update timer
+  // Update the timer
   m_timer += dt;
 
   // If enough time has passed...
@@ -32,7 +32,7 @@ void MoistureRecording::update_system(const unsigned long dt)
     if(count == MAX_MOISTURE_RECORDINGS)
       return;
 
-    // Update count
+    // Update the number of recordings
     EEPROM.write(0, count + 1);
 
     // Read the current moisture value from the sensor
@@ -64,7 +64,7 @@ void MoistureRecording::print_readings()
     return;
   }
 
-  // Print all values
+  // Otherwise, print all values
   Serial.println("Recorded moisture values:");
   for(unsigned char i = 0; i < count; ++i)
   {

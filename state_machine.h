@@ -1,25 +1,26 @@
 #ifndef GH_STATE_MACHINE_H
 #define GH_STATE_MACHINE_H
 
-/** Includes. */
+/* Includes. */
 #include <stdlib.h>
 
 /**
- * State machine utility.
+ * State machine utility. A state machine is a directed graph, where nodes
+ * in the graph are functions and edges are how each node flows to another.
  */
 class StateMachine
 {
 public:
 
   /**
-   * State machine node.
+   * A state machine node.
    */
   struct Node
   {
     /** 
      * Function that the state machine will execute when running the node. 
      * @param Time in milliseconds since the last execution of the state machine.
-     * @param State machine
+     * @param State machine the node belongs to.
      */
     void(*func)(const unsigned long, StateMachine&);
   };
@@ -36,19 +37,19 @@ public:
 
   /**
    * Run the state machine.
-   * @param Time in milliseconds since last execution.
+   * @param dt Time in milliseconds since last execution.
    */
   void execute(const unsigned long dt);
 
   /**
    * Change the active node.
-   * @param New active node.
+   * @param n New active node.
    */
   void set_active_node(const size_t n);
 
   /**
-   * Add a node.
-   * @param Node to add.
+   * Add a new node.
+   * @param n Node to add.
    */
   void add_node(const Node& n);
 

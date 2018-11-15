@@ -1,7 +1,7 @@
 #ifndef GH_MOISTURE_RECORDING_H
 #define GH_MOISTURE_RECORDING_H
 
-/** Includes. */
+/* Includes. */
 #include "moisture_sensor.h"
 
 /** Time (In milliseconds) in between moisture sensor recordings. */
@@ -25,13 +25,13 @@ public:
 
   /**
    * Constructor.
-   * @param Moisture sensor.
+   * @param sensor Moisture sensor to record from.
    */
   MoistureRecording(MoistureSensor& sensor);
 
   /**
    * Update the moisture recording system.
-   * @param Time since last updating.
+   * @param dt Time since last updating.
    */
   void update_system(const unsigned long dt);
 
@@ -41,7 +41,7 @@ public:
   void clear_readings();
 
   /**
-   * Print all readings to serial output.
+   * Prints all readings to serial output.
    */
   void print_readings();
 
