@@ -12,7 +12,7 @@ static unsigned long current_time;
 static StateMachine psm = {};
 
 /** Moisture sensor. */
-static MoistureSensor sensor = MoistureSensor(MOISTURE_SENSOR_PIN);
+MoistureSensor sensor = MoistureSensor(MOISTURE_SENSOR_PIN);
 
 /** Moisture recording system. */
 static MoistureRecording moisture_recording = MoistureRecording(sensor);
@@ -37,6 +37,15 @@ void cmd_print_moisture_values()
   moisture_recording.print_readings();
 }
 
+/**
+ * Command to print current moisture reading.
+ */
+void cmd_print_current_moisture()
+{
+  Serial.print("Current Moisture: ");
+  Serial.println(sensor.read_value());
+}
+
 void setup() 
 {
   // Initialize serial monitoring
@@ -51,6 +60,9 @@ void setup()
   StateMachine::Node node = {};
   
   node.func = &psm_wait_until_dry;
+  psm.add_node(node);
+
+  node.func = &psm_wait_after_dry;
   psm.add_node(node);
 
   node.func = &psm_run_pump;
@@ -68,6 +80,10 @@ void setup()
 
   command.str = "print_moisture_values";
   command.func = &cmd_print_moisture_values;
+  commands.add_command(command);
+
+  command.str = "print_current_moisture";
+  command.func = &cmd_print_current_moisture;
   commands.add_command(command);
 
   // Initialize timer
