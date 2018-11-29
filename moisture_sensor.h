@@ -1,14 +1,15 @@
 #ifndef GH_MOISTURE_SENSOR_H
 #define GH_MOISTURE_SENSOR_H
 
-/** Minimum value from the moisture sensor. (Dry) */
+/** Minimum theoretical value the moisture sensor will read. (Dry) */
 #define MS_DRY_VALUE 0
 
-/** Maximum value from the moisture sensor. (Wet) */
+/** Maximum theoretical value the moisture sensor will read. (Wet) */
 #define MS_WET_VALUE 560
 
 /**
- * Class which reads values from a moisture sensor.
+ * A basic utility class which treats a pin as a moisture sensor.
+ * You can poll the current value of the moisture sensor using 'read_value'.
  */
 class MoistureSensor
 {
@@ -21,7 +22,7 @@ public:
 
   /**
    * Constructor.
-   * @param pin Pin the sensor is connected too.
+   * @param pin Analog pin the sensor is connected too.
    */
   MoistureSensor(const int pin);
 

@@ -24,10 +24,10 @@ void StateMachine::execute(const unsigned long dt)
 
 void StateMachine::set_active_node(const size_t n)
 {
-  // Set the last active node to the active node
+  // Set the last active node to the current active node
   m_last_active_node = m_active_node;
 
-  // And update the active node
+  // And update the active node to whatever we requested
   m_active_node = n;
 }
 

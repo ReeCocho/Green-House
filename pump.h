@@ -24,6 +24,9 @@
 /** Pump wait time. (In milliseconds) */
 #define PUMP_WAIT_TIME 5000
 
+/** Value from the moisture sensor we consider dry. */
+#define PUMP_SENSOR_DRY 100
+
 /**
  * State machine node which waits until the EarthBox is dry.
  * @note See StateMachine::Node for parameter definitions.

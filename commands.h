@@ -3,15 +3,20 @@
 
 /**
  * A utility class which reads input from the serial monitor and interprets
- * the input as commands. Commands are registered with the class.
+ * the input as commands. To use a command manager you first construct an
+ * instance of the class as normal. Then, you fill 'Command' objects with a
+ * string containing the name of the command, and a function pointer which
+ * points to the function that will be executed when the command is run. You
+ * submit these 'Command' objects to the 'CommandManager' by calling
+ * 'add_command'. Then, whenever you want, you can call 'poll' which will
+ * check if any commands were executed.
  */
 class CommandManager
 {
 public:
 
   /**
-   * A named function that can be executed by typing its name into the serial
-   * monitor.
+   * Information about a command that the command manager can execute.
    */
   struct Command
   {

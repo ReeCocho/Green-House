@@ -16,7 +16,7 @@ uint16_t MoistureSensor::read_value() const
   // Read the value off the moisture sensor (Ranges from 0 to 1024)
   auto val = analogRead(m_pin);
 
-  // Clamp it between the minimum and maximum value
+  // Clamp it between the minimum and maximum theoretical value
   if(val < MS_DRY_VALUE) val = MS_DRY_VALUE;
   if(val > MS_WET_VALUE) val = MS_WET_VALUE;
 

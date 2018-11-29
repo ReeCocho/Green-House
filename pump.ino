@@ -11,7 +11,7 @@ void psm_wait_until_dry(const unsigned long dt, StateMachine& sm)
   digitalWrite(PUMP_PIN, LOW);
 
   // Switch states if the float switch is on and the moisture sensor reads dry
-  if(digitalRead(EB_FLOAT_SWITCH_PIN) == HIGH && sensor.read_value() <= 100)
+  if(digitalRead(EB_FLOAT_SWITCH_PIN) == HIGH && sensor.read_value() <= PUMP_SENSOR_DRY)
     sm.set_active_node(1);
 }
 
