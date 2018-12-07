@@ -16,7 +16,7 @@
 #include "state_machine.h"
 
 /** Time to wait after the moisture sensor reads dry. (In milliseconds) */
-#define PUMP_WAIT_TIME_AFTER_DRY 21600000
+#define PUMP_WAIT_TIME_AFTER_DRY 10800000
 
 /** Pump run time. (In milliseconds) */
 #define PUMP_RUN_TIME 10000
@@ -25,7 +25,7 @@
 #define PUMP_WAIT_TIME 5000
 
 /** Value from the moisture sensor we consider dry. */
-#define PUMP_SENSOR_DRY 100
+#define PUMP_SENSOR_DRY 250
 
 /**
  * State machine node which waits until the EarthBox is dry.

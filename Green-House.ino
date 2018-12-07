@@ -12,15 +12,17 @@
 /*
  * Include libraries. See the individual files for their description. 
  */
+#include "eeprom_mem_manager.h"
 #include "moisture_recording.h"
+#include "pump_recording.h"
 #include "commands.h"
 #include "pump.h"
 #include "pins.h"
 
 /*
- * NOTE: Notice that all the variables are 'static' other than the moisture sensor.
- * The 'static' keyword makes the variable only exist in the current file. The reason
- * the moisture sensor is not 'static' is because we need to use it in pump.ino.
+ * NOTE: Notice that all the variables are 'static' except for a select few. The 
+ * 'static' keyword makes the variable only exist in the current file. The reason
+ * some of the variables are not static is because they are used in other files.
  */
 
 /*
@@ -28,6 +30,13 @@
  */
 static unsigned long last_time;
 static unsigned long current_time;
+
+/**
+ * EEPROM memory manager. Allows for easier control over read/write operations
+ * on the EEPROM.
+ */
+EEPROMMemoryManager eeprom = {};
+
 
 /** 
  * The pumps state machine controller. This object manages all the watering logic.
@@ -50,6 +59,12 @@ MoistureSensor sensor = MoistureSensor(MOISTURE_SENSOR_PIN);
  */
 static MoistureRecording moisture_recording = MoistureRecording(sensor);
 
+/**
+ * Object which is used to record how much time passes between consecutive
+ * pump runs.
+ */
+PumpRecording pump_recording = {};
+
 /** 
  * Object that manages commands that we can input using the serial port.
  */
@@ -61,7 +76,7 @@ static CommandManager commands = {};
 void cmd_clear_moisture_values()
 {
   // Print out a little message so we know it worked
-  Serial.println("Clearing values...");
+  Serial.println("Clearing recorded moisture values...");
 
   // Actually clear the recorded values
   moisture_recording.clear_readings();
@@ -84,6 +99,27 @@ void cmd_print_current_moisture()
   // Print out the value
   Serial.print("Current Moisture: ");
   Serial.println(sensor.read_value());
+}
+
+/**
+ * Command to print recorded pump run times.
+ */
+void cmd_print_pump_run_times()
+{
+  // The pump recording class has its own function to do this
+  pump_recording.print_pump_run_times();
+}
+
+/**
+ * Command to clear recorded pump run times.
+ */
+void cmd_clear_pump_run_times()
+{
+  // Print out a little message so we know it worked
+  Serial.println("Clearing recorded pump run times...");
+
+  // Actually clear the recorded values
+  pump_recording.clear_pump_run_times();
 }
 
 /**
@@ -145,6 +181,14 @@ void setup()
   command.func = &cmd_print_current_moisture;
   commands.add_command(command);
 
+  command.str = "print_pump_run_times";
+  command.func = &cmd_print_pump_run_times;
+  commands.add_command(command);
+
+  command.str = "clear_pump_run_times";
+  command.func = &cmd_clear_pump_run_times;
+  commands.add_command(command);
+
   /*
    * Now we setup the delta time variables. Delta time is measured in
    * milliseconds, so we just poll the global timer and set both values
@@ -178,6 +222,9 @@ void loop()
 
   // Next, run the state machine
   psm.execute(dt);
+
+  // Then, update the pump timer
+  pump_recording.update(dt);
 
   // Finally, update moisture recorder
   moisture_recording.update_system(dt);

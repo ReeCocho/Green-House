@@ -2,8 +2,9 @@
 #include "pump.h"
 #include "pins.h"
 
-/** So we can use the global sensor. */
+/* So we can use the global stuff. */
 extern MoistureSensor sensor;
+extern PumpRecording pump_recording;
 
 void psm_wait_until_dry(const unsigned long dt, StateMachine& sm)
 {
@@ -34,6 +35,9 @@ void psm_wait_after_dry(const unsigned long dt, StateMachine& sm)
 
     // Move to psm_run_pump
     sm.set_active_node(2);
+
+    // Say we've run the pump
+    pump_recording.pump_run();
   }
 }
 

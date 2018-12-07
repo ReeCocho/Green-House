@@ -2,20 +2,25 @@
 #include <EEPROM.h>
 #include "moisture_recording.h"
 
+/* This variable is defined in Green-House.ino. */
+extern EEPROMMemoryManager eeprom;
+
 MoistureRecording::MoistureRecording() : m_sensor(NULL), m_timer(0)
 {
-  
+  // Allocate memory for recording storage
+  m_eeprom_mem = eeprom.alloc(1 + (sizeof(uint16_t) * MAX_MOISTURE_RECORDINGS));
 }
 
 MoistureRecording::MoistureRecording(MoistureSensor& sensor) : 
   m_sensor(&sensor), 
   m_timer(0)
 {
-  
+  // Allocate memory for recording storage
+  m_eeprom_mem = eeprom.alloc(1 + (sizeof(uint16_t) * MAX_MOISTURE_RECORDINGS));
 }
 
 void MoistureRecording::update_system(const unsigned long dt)
-{
+{ 
   // Update the internal timer
   m_timer += dt;
 
@@ -26,38 +31,38 @@ void MoistureRecording::update_system(const unsigned long dt)
     m_timer = 0;
 
     // Read the current number of recordings
-    const auto count = static_cast<const unsigned char>(EEPROM.read(0));
+    const auto count = static_cast<unsigned char>(eeprom.read(m_eeprom_mem, 0));
 
     // Stop if the number of recorded values is at maximum
     if(count == MAX_MOISTURE_RECORDINGS)
       return;
 
     // Update the number of recorded values
-    EEPROM.write(0, count + 1);
+    eeprom.write(m_eeprom_mem, 0, count + 1);
 
     /* Because you can't write anything larger than 1 byte at a time to the EEPROM,
      * we convert the current value in the moisture sensor into an array of bytes.
      * We then write each byte individualy into the EEPROM.
      */
     const auto val = m_sensor->read_value();
-    const uint8_t* bval = reinterpret_cast<const uint8_t*>(&val);
+    const char* bval = reinterpret_cast<const char*>(&val);
 
     // Write each byte
-    EEPROM.write(1 + (count * sizeof(uint16_t)), bval[0]);
-    EEPROM.write(2 + (count * sizeof(uint16_t)), bval[1]);
+    eeprom.write(m_eeprom_mem, 1 + (count * sizeof(uint16_t)), bval[0]);
+    eeprom.write(m_eeprom_mem, 2 + (count * sizeof(uint16_t)), bval[1]);
   }
 }
 
 void MoistureRecording::clear_readings()
 {
   // Just say that the number of readings is 0 (Big brain)
-  EEPROM.write(0, 0);
+  eeprom.write(m_eeprom_mem, 0, 0);
 }
 
 void MoistureRecording::print_readings()
 {
   // Read the number of recordings
-  const auto count = static_cast<const unsigned char>(EEPROM.read(0));
+  const auto count = static_cast<unsigned char>(eeprom.read(m_eeprom_mem, 0));
 
   // Print special message if it's empty
   if(count == 0)
@@ -75,9 +80,9 @@ void MoistureRecording::print_readings()
      * we reconstruct it.
      */
     uint16_t val = 0;
-    uint8_t* bval = reinterpret_cast<uint8_t*>(&val);
-    bval[0] = EEPROM.read(1 + (count * sizeof(uint16_t)));
-    bval[1] = EEPROM.read(2 + (count * sizeof(uint16_t)));
+    char* bval = reinterpret_cast<char*>(&val);
+    bval[0] = eeprom.read(m_eeprom_mem, 1 + (i * sizeof(uint16_t)));
+    bval[1] = eeprom.read(m_eeprom_mem, 2 + (i * sizeof(uint16_t)));
 
     // Print value and it's index
     Serial.print(i);
