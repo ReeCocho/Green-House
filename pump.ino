@@ -1,37 +1,78 @@
 /** Includes. */
 #include "pump.h"
 #include "pins.h"
+#include "cpp_mem.h"
 
 /* So we can use the global stuff. */
-extern MoistureSensor sensor;
 extern PumpRecording pump_recording;
 
-void psm_wait_until_dry(const unsigned long dt, StateMachine& sm)
+PumpStateMachine::PumpStateMachine(const int pump_pin, const int float_switch, const int m_sensor) :
+  m_pump_pin(pump_pin),
+  m_float_switch(float_switch),
+  m_state_machine({})
 {
-  // Turn off the pump
-  digitalWrite(PUMP_PIN, LOW);
+  // Setup pins
+  pinMode(pump_pin, OUTPUT);
+  pinMode(float_switch, INPUT); 
+  
+  // Create the moisture sensor
+  m_moisture_sensor = m_sensor < 0 ? NULL : new MoistureSensor(m_sensor);
 
-  // Switch states if the float switch is on and the moisture sensor reads dry
-  if(digitalRead(EB_FLOAT_SWITCH_PIN) == HIGH && sensor.read_value() <= PUMP_SENSOR_DRY)
-    sm.set_active_node(1);
+  // Setup the state machine
+  StateMachine::Node node = {};
+  node.data = (void*)this;
+  
+  node.func = &psm_wait_until_dry;
+  m_state_machine.add_node(node);
+
+  node.func = &psm_wait_after_dry;
+  m_state_machine.add_node(node);
+
+  node.func = &psm_run_pump;
+  m_state_machine.add_node(node);
+
+  node.func = &psm_idle_pump;
+  m_state_machine.add_node(node);
 }
 
-void psm_wait_after_dry(const unsigned long dt, StateMachine& sm)
+PumpStateMachine::~PumpStateMachine()
 {
-  // Timer used to idle the pump. (In milliseconds)
-  static unsigned long wait_timer = 0;
+  delete m_moisture_sensor;
+}
 
+void psm_wait_until_dry(const unsigned long dt, StateMachine& sm, void* data)
+{
+  PumpStateMachine* psm = static_cast<PumpStateMachine*>(data);
+  
   // Turn off the pump
-  digitalWrite(PUMP_PIN, LOW);
+  digitalWrite(psm->m_pump_pin, LOW);
+
+  // Switch states if the float switch is on
+  if(digitalRead(psm->m_float_switch) == HIGH)
+  {
+    // Moisture sensor is optional
+    if(psm->m_moisture_sensor != NULL && psm->m_moisture_sensor->read_value() > PUMP_SENSOR_DRY)
+      return;
+    
+    sm.set_active_node(1);
+  }
+}
+
+void psm_wait_after_dry(const unsigned long dt, StateMachine& sm, void* data)
+{
+  PumpStateMachine* psm = static_cast<PumpStateMachine*>(data);
+  
+  // Turn off the pump
+  digitalWrite(psm->m_pump_pin, LOW);
 
   // Update timer
-  wait_timer += dt;
+  psm->m_wait_after_dry_timer += dt;
 
   // If we have waited for the requested time...
-  if(wait_timer >= PUMP_WAIT_TIME_AFTER_DRY)
+  if(psm->m_wait_after_dry_timer >= PUMP_WAIT_TIME_AFTER_DRY)
   {
     // Reset timer
-    wait_timer = 0;
+    psm->m_wait_after_dry_timer = 0;
 
     // Move to psm_run_pump
     sm.set_active_node(2);
@@ -41,46 +82,44 @@ void psm_wait_after_dry(const unsigned long dt, StateMachine& sm)
   }
 }
 
-void psm_run_pump(const unsigned long dt, StateMachine& sm)
+void psm_run_pump(const unsigned long dt, StateMachine& sm, void* data)
 {
-  // Timer used to run the pump. (In milliseconds)
-  static unsigned long pump_timer = 0;
+  PumpStateMachine* psm = static_cast<PumpStateMachine*>(data);
 
   // Turn on the pump
-  digitalWrite(PUMP_PIN, HIGH);
+  digitalWrite(psm->m_pump_pin, HIGH);
 
   // Update pump timer
-  pump_timer += dt;
+  psm->m_run_pump_timer += dt;
 
   // If we have run for the requested amount of time...
-  if(pump_timer >= PUMP_RUN_TIME)
+  if(psm->m_run_pump_timer >= PUMP_RUN_TIME)
   {
     // Reset pump timer
-    pump_timer = 0;
+    psm->m_run_pump_timer = 0;
 
     // If the float switch is off, go back to waiting for it to be on. 
     // Otherwise, idle for the requested amount of time and go back to
     // running the pump.
-    sm.set_active_node(digitalRead(EB_FLOAT_SWITCH_PIN) == LOW ? 0 : 3);
+    sm.set_active_node(digitalRead(psm->m_float_switch) == LOW ? 0 : 3);
   }
 }
 
-void psm_idle_pump(const unsigned long dt, StateMachine& sm)
+void psm_idle_pump(const unsigned long dt, StateMachine& sm, void* data)
 {
-  // Timer used to idle (In milliseconds)
-  static unsigned long pump_timer = 0;
-
+  PumpStateMachine* psm = static_cast<PumpStateMachine*>(data);
+  
   // Turn off the pump
-  digitalWrite(PUMP_PIN, LOW);
+  digitalWrite(psm->m_pump_pin, LOW);
   
   // Update the pump timer
-  pump_timer += dt;
+  psm->m_idle_pump_timer += dt;
 
   // If we have waited for the requested amount of time...
-  if(pump_timer >= PUMP_WAIT_TIME)
+  if(psm->m_idle_pump_timer >= PUMP_WAIT_TIME)
   {
     // Reset the pump timer
-    pump_timer = 0;
+    psm->m_idle_pump_timer = 0;
 
     // Go back to running the pump
     sm.set_active_node(2);

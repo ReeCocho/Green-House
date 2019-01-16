@@ -19,7 +19,7 @@ StateMachine::~StateMachine()
 void StateMachine::execute(const unsigned long dt)
 {
   // Call the function accosiated with the active node
-  m_nodes[m_active_node].func(dt, *this);
+  m_nodes[m_active_node].func(dt, *this, m_nodes[m_active_node].data);
 }
 
 void StateMachine::set_active_node(const size_t n)

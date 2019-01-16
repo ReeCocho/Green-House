@@ -41,7 +41,8 @@ EEPROMMemoryManager eeprom = {};
 /** 
  * The pumps state machine controller. This object manages all the watering logic.
  */
-static StateMachine psm = {};
+static PumpStateMachine psm = { 13, 12, A0 };
+static PumpStateMachine psm2 = { 11, 10, -1 };
 
 /** 
  * Object to read values off of the moisture sensor. We pass 'MOISTURE_SENSOR_PIN'
@@ -139,26 +140,6 @@ void setup()
 
   // Delay a little bit so the pins can update
   delay(500);
-  
-  /*
-   * Now we start to setup the state machine. Here, we create an instance of the
-   * state machines 'Node' class. Then, one at a time, we set the function associated
-   * with the given node, and add it to the pump state machine. 
-   */
-  
-  StateMachine::Node node = {};
-  
-  node.func = &psm_wait_until_dry;
-  psm.add_node(node);
-
-  node.func = &psm_wait_after_dry;
-  psm.add_node(node);
-
-  node.func = &psm_run_pump;
-  psm.add_node(node);
-
-  node.func = &psm_idle_pump;
-  psm.add_node(node);
 
   /*
    * Now we initialize the command manager. We create an instance of the
@@ -221,7 +202,8 @@ void loop()
   commands.poll();
 
   // Next, run the state machine
-  psm.execute(dt);
+  psm.m_state_machine.execute(dt);
+  psm2.m_state_machine.execute(dt);
 
   // Then, update the pump timer
   pump_recording.update(dt);

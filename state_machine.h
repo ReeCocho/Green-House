@@ -30,8 +30,12 @@ public:
      * Function that the state machine will execute when running the node. 
      * @param Time in milliseconds since the last execution of the state machine.
      * @param State machine the node belongs to.
+     * @param Optional data sent along with the node when it is executed
      */
-    void(*func)(const unsigned long, StateMachine&);
+    void(*func)(const unsigned long, StateMachine&, void*);
+
+    /** Optional data sent along with the node when it is executed. */
+    void* data;
   };
 
   /**
