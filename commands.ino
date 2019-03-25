@@ -80,11 +80,10 @@ CommandManager::~CommandManager()
 
 void CommandManager::poll()
 {
-  /* So the way
-   * this 'poll' method works is by checking to see if a string has been
-   * input by the user. If it hasn't it doesn't do anything. If there is
-   * a string, it checks to see if the string that was input matches the
-   * name of any commands we have. If it does, it runs the function
+  /* So the way this 'poll' method works is by checking to see if a string 
+   * has been input by the user. If it hasn't it doesn't do anything. If 
+   * there is a string, it checks to see if the string that was input matches
+   * the name of any commands we have. If it does, it runs the function
    * associated with that command. If it doesn't, it prints out a little
    * message saying that the command was unkown.
    */

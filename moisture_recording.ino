@@ -33,12 +33,28 @@ void MoistureRecording::update_system(const unsigned long dt)
     // Read the current number of recordings
     const auto count = static_cast<unsigned char>(eeprom.read(m_eeprom_mem, 0));
 
-    // Stop if the number of recorded values is at maximum
+    // Delete the oldest value
     if(count == MAX_MOISTURE_RECORDINGS)
-      return;
-
-    // Update the number of recorded values
-    eeprom.write(m_eeprom_mem, 0, count + 1);
+    {
+      // We do this basically by scooting all the recorded values backward in the eeprom
+      for(int i = 0; i < MAX_MOISTURE_RECORDINGS - 1; ++i)
+      {    
+        // Read the next value
+        uint16_t val = 0;
+        char* bval = reinterpret_cast<char*>(&val);
+        bval[0] = eeprom.read(m_eeprom_mem, 1 + ((i + 1) * sizeof(uint16_t)));
+        bval[1] = eeprom.read(m_eeprom_mem, 2 + ((i + 1) * sizeof(uint16_t)));
+        
+        // Put the next value into the current values position
+        eeprom.write(m_eeprom_mem, 1 + (count * sizeof(uint16_t)), bval[0]);
+        eeprom.write(m_eeprom_mem, 2 + (count * sizeof(uint16_t)), bval[1]);
+      }
+    }
+    else
+    {
+      // Update the number of recorded values
+      eeprom.write(m_eeprom_mem, 0, count + 1);
+    }
 
     /* Because you can't write anything larger than 1 byte at a time to the EEPROM,
      * we convert the current value in the moisture sensor into an array of bytes.

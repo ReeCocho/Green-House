@@ -21,7 +21,8 @@
  * To use the system, you call 'update_system' and pass in a delta time in 
  * milliseconds. Once an internal timer passes 'MOISTURE_RECORDING_TIME', the 
  * system will record a new moisture value. If the maximum number of moisture 
- * values is already stored, it will do nothing.
+ * values is already stored, it will delete the oldest value so it can make room
+ * for the new one.
  */
 class MoistureRecording
 {

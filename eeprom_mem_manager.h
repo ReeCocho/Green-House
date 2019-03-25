@@ -65,7 +65,7 @@ private:
       /** Number of bytes allocated. */
       uint16_t len;
 
-      /** Offset in bytes from 0 where the allocation begins. */
+      /** Offset in bytes from 0 where the allocation begins in the EEPROM. */
       uint16_t offset;
    };
 

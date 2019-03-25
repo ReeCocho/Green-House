@@ -1,7 +1,7 @@
 /**
  * This is the primary source file for the whole greenhouse project. It combines
- * four main components together to make the whole thing work. The state machine
- * (see state_machine.h), the moisture sensor (see moisture_sensor.h), the 
+ * four main components together to make the whole thing work. The pump state 
+ * machine (see pump.h), the moisture sensor (see moisture_sensor.h), the 
  * moisture recorder (see moisture_recording.h), and the command manager
  * (see command_manager.h). The program begins in 'setup', where initialization
  * occurs (setting up the state machine, commands, pins, etc.) Afterwards, the
@@ -10,7 +10,7 @@
  */
 
 /*
- * Include libraries. See the individual files for their description. 
+ * Include libraries. See the individual files for what they do. 
  */
 #include "eeprom_mem_manager.h"
 #include "moisture_recording.h"
@@ -20,8 +20,8 @@
 #include "pins.h"
 
 /*
- * NOTE: Notice that all the variables are 'static' except for a select few. The 
- * 'static' keyword makes the variable only exist in the current file. The reason
+ * NOTE: Notice that some of the variables are 'static'. The 'static'
+ * keyword makes the variable only accesible in the current file. The reason
  * some of the variables are not static is because they are used in other files.
  */
 
@@ -37,9 +37,10 @@ static unsigned long current_time;
  */
 EEPROMMemoryManager eeprom = {};
 
-
 /** 
- * The pumps state machine controller. This object manages all the watering logic.
+ * The pumps state machine controllesr. These objects manages all the watering logic.
+ * Look at the constructor in 'pump.h' for definitions of what each constructor
+ * parameter does.
  */
 static PumpStateMachine psm = { 13, 12, A0 };
 static PumpStateMachine psm2 = { 11, 10, -1 };
@@ -88,7 +89,10 @@ void cmd_clear_moisture_values()
  */
 void cmd_print_moisture_values()
 {
-  // The moisture recorder has its own function to print the values
+  // The moisture recorder has its own function to print the values.
+  // We have to create a function to call this command because the
+  // 'CommandManager' object can't take function pointers to member
+  // functions of classes.
   moisture_recording.print_readings();
 }
 
@@ -107,7 +111,7 @@ void cmd_print_current_moisture()
  */
 void cmd_print_pump_run_times()
 {
-  // The pump recording class has its own function to do this
+  // The pump recording class has its own function to do this.
   pump_recording.print_pump_run_times();
 }
 
@@ -131,6 +135,14 @@ void setup()
 {
   // Initialize serial io
   Serial.begin(9600);
+
+  // This disables every pin at the start of the program,
+  // reducing power consumption by a little bit.
+  for (byte i = 0; i <= A5; ++i)
+  {
+    pinMode (i, OUTPUT);    // changed as per below
+    digitalWrite (i, LOW);  //     ditto
+  }
   
   // The pump pin is an output (Because we are turning the pump on and off.)
   pinMode(PUMP_PIN, OUTPUT);
@@ -138,7 +150,7 @@ void setup()
   // The float switch is an input (Because we are reading whether it is on or off.)
   pinMode(EB_FLOAT_SWITCH_PIN, INPUT);
 
-  // Delay a little bit so the pins can update
+  // Delay a little bit so the pin modes can update
   delay(500);
 
   /*
@@ -201,7 +213,7 @@ void loop()
   // First, check if any commands were input
   commands.poll();
 
-  // Next, run the state machine
+  // Next, run the state machines
   psm.m_state_machine.execute(dt);
   psm2.m_state_machine.execute(dt);
 
@@ -211,6 +223,6 @@ void loop()
   // Finally, update moisture recorder
   moisture_recording.update_system(dt);
 
-  // Wait 1 millisecond so the sensors have time to update
+  // Wait a little bit so the sensors have time to update
   delay(1);
 }
