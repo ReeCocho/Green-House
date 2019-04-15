@@ -39,8 +39,9 @@ public:
    * @param pump_pin Digital pin used for the pump.
    * @param float_switch Float switch inside the Earth Box reservoir.
    * @param m_sensor Optional moisture sensor pin. (Make it negative if it is not used).
+   * @param r_float_switch Reservoirs float switch.
    */
-  PumpStateMachine(const int pump_pin, const int float_switch, const int m_sensor);
+  PumpStateMachine(const int pump_pin, const int float_switch, const int m_sensor, const int r_float_switch);
 
   /**
    * Destructor.
@@ -58,6 +59,9 @@ public:
 
   /** Optional moisture sensor. */
   MoistureSensor* m_moisture_sensor;
+
+  /** The reservoirs float switch. */
+  const int m_reservoir_float_switch;
 
   /** Timer used for waiting after the pump has run dry. */
   unsigned long m_wait_after_dry_timer;

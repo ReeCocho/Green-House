@@ -6,14 +6,16 @@
 /* So we can use the global stuff. */
 extern PumpRecording pump_recording;
 
-PumpStateMachine::PumpStateMachine(const int pump_pin, const int float_switch, const int m_sensor) :
+PumpStateMachine::PumpStateMachine(const int pump_pin, const int float_switch, const int m_sensor, const int r_float_switch) :
   m_pump_pin(pump_pin),
   m_float_switch(float_switch),
+  m_reservoir_float_switch(r_float_switch),
   m_state_machine({})
 {
   // Setup pins
   pinMode(pump_pin, OUTPUT);
   pinMode(float_switch, INPUT); 
+  pinMode(m_reservoir_float_switch, INPUT);
   
   // Create the moisture sensor
   m_moisture_sensor = m_sensor < 0 ? NULL : new MoistureSensor(m_sensor);
@@ -48,7 +50,7 @@ void psm_wait_until_dry(const unsigned long dt, StateMachine& sm, void* data)
   digitalWrite(psm->m_pump_pin, LOW);
 
   // Switch states if the float switch is on
-  if(digitalRead(psm->m_float_switch) == HIGH)
+  if(digitalRead(psm->m_float_switch) != HIGH)
   {
     // Moisture sensor is optional
     if(psm->m_moisture_sensor != NULL && psm->m_moisture_sensor->read_value() > PUMP_SENSOR_DRY)
@@ -86,8 +88,9 @@ void psm_run_pump(const unsigned long dt, StateMachine& sm, void* data)
 {
   PumpStateMachine* psm = static_cast<PumpStateMachine*>(data);
 
-  // Turn on the pump
-  digitalWrite(psm->m_pump_pin, HIGH);
+  // Turn on the pump only if the reservoir is not empty
+  if(digitalRead(psm->m_reservoir_float_switch) == LOW)
+    digitalWrite(psm->m_pump_pin, HIGH);
 
   // Update pump timer
   psm->m_run_pump_timer += dt;

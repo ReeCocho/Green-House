@@ -42,8 +42,8 @@ EEPROMMemoryManager eeprom = {};
  * Look at the constructor in 'pump.h' for definitions of what each constructor
  * parameter does.
  */
-static PumpStateMachine psm = { 13, 12, A0 };
-static PumpStateMachine psm2 = { 11, 10, -1 };
+static PumpStateMachine psm = { 13, 12, A0, 9 };
+static PumpStateMachine psm2 = { 11, 10, -1, 9 };
 
 /** 
  * Object to read values off of the moisture sensor. We pass 'MOISTURE_SENSOR_PIN'
