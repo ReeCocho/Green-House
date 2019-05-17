@@ -50,7 +50,7 @@ static PumpStateMachine psm2 = { 11, 10, -1, 9 };
  * (which is defined in pins.h) which is the pin that the moisture sensor is
  * connected to.
  */
-MoistureSensor sensor = MoistureSensor(MOISTURE_SENSOR_PIN);
+MoistureSensor sensor = MoistureSensor(A0);
 
 /**
  * Object which records moisutre sensor readings onto the Arduinos EEPROM.
@@ -103,7 +103,7 @@ void cmd_print_current_moisture()
 {
   // Print out the value
   Serial.print("Current Moisture: ");
-  Serial.println(sensor.read_value());
+  Serial.println(analogRead(A0)); // sensor.read_value());
 }
 
 /**
@@ -219,6 +219,7 @@ void loop()
 
   // Then, update the pump timer
   pump_recording.update(dt);
+
 
   // Finally, update moisture recorder
   moisture_recording.update_system(dt);

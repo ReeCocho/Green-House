@@ -17,11 +17,7 @@ bool SunTracker::is_pointing_at_sun() const
   // Compute difference between the vaues
   const int16_t diff = ps1_val - ps2_val;
 
-  Serial.print(diff);
-  Serial.print(" ");
-  Serial.print(ps1_val);
-  Serial.print(" ");
-  Serial.println(ps2_val);
+  Serial.println(diff);
 
   // Compare difference with the sensitivity. Also, at least one of 
   // the photo sensors must illuminated, otherwise it's safe to assume
